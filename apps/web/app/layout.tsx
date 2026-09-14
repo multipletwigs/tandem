@@ -1,10 +1,16 @@
 import { Inter } from "next/font/google"
 import localFont from "next/font/local"
+import type { Metadata } from "next"
 
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Providers } from "@/app/providers"
 import { cn } from "@workspace/ui/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Tandem",
+  description: "Turn next year's interest into stock today. The principal comes back whole.",
+}
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
