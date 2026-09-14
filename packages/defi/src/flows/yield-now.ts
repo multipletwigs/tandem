@@ -17,7 +17,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js"
-import { LOCAL_ENV, Orderbook, Vault, YtPosition, OfferType } from "@exponent-labs/exponent-sdk"
+import { LOCAL_ENV, Orderbook, Vault, YtPosition, OfferType, QuoteDirection } from "@exponent-labs/exponent-sdk"
 
 import { USDC_MINT } from "../addresses"
 import { fetchExponentMarkets, type ExponentMarket } from "../exponent-api"
@@ -43,6 +43,13 @@ export interface YieldNowQuote {
   stockMint: string
   maturity: Date
   impliedApy: number
+  /** Jupiter price impact for the USDC→base swap, as a fraction (−0.01 = −1%) */
+  swapPriceImpact: number
+  /** Executable YT sale against live orderbook bids (null when the book can't absorb it) */
+  ytExecutable: { baseOut: bigint; takerFees: bigint; impliedApyAfter?: number } | null
+  /** Sum of resting BuyYt offers (base units) and the number of bids */
+  ytBidDepth: bigint
+  ytBidCount: number
 }
 
 /** Pure read: what does $X of USDC turn into, today, on a given market? */
@@ -51,6 +58,8 @@ export async function quoteYieldNow(params: {
   vaultAddress: string
   stockMint: string
   jupiterApiKey?: string
+  /** when given, the YT sale is quoted against the live orderbook instead of the API's indicative price */
+  connection?: Connection
 }): Promise<YieldNowQuote> {
   const markets = await fetchExponentMarkets()
   const market = markets.find((m) => m.vaultAddress === params.vaultAddress)
@@ -64,9 +73,35 @@ export async function quoteYieldNow(params: {
   // Strip is 1 base → 1 PT + 1 YT (SY-normalised; ptRedemptionRate ≈ 1 near issuance)
   const ptOut = baseIn
   const ytOut = baseIn
-  const ytProceedsBase = BigInt(Math.floor(Number(ytOut) * market.ytPriceInAsset))
+  let ytProceedsBase = BigInt(Math.floor(Number(ytOut) * market.ytPriceInAsset))
+  let ytExecutable: YieldNowQuote["ytExecutable"] = null
+  let ytBidDepth = 0n
+  let ytBidCount = 0
+  if (params.connection && market.orderbookAddresses[0]) {
+    try {
+      const vault = await Vault.load(EXPONENT_MAINNET_ENV, params.connection, new PublicKey(market.vaultAddress))
+      const ob = await Orderbook.load(EXPONENT_MAINNET_ENV, params.connection, new PublicKey(market.orderbookAddresses[0]), undefined, vault)
+      const bids = ob.getOffers().filter((o) => o.type === OfferType.BuyYt)
+      ytBidCount = bids.length
+      ytBidDepth = BigInt(Math.floor(bids.reduce((acc, o) => acc + Number(o.amount), 0)))
+      const q = ob.getQuote({
+        inAmount: Number(ytOut),
+        direction: QuoteDirection.YT_TO_BASE,
+        unixNow: Math.floor(Date.now() / 1000),
+        syExchangeRate: vault.currentSyExchangeRate,
+      })
+      if (q.outAmount > 0) {
+        ytExecutable = { baseOut: BigInt(Math.floor(q.outAmount)), takerFees: BigInt(Math.floor(q.takerFees)), impliedApyAfter: q.impliedApyAfterTrade }
+        ytProceedsBase = ytExecutable.baseOut
+      }
+    } catch {
+      ytExecutable = null
+    }
+  }
 
-  const [stock] = await quoteSunrise({ fromToken: baseMint, toToken: params.stockMint, fromAmount: ytProceedsBase })
+  const [stock] = ytProceedsBase > 0n
+    ? await quoteSunrise({ fromToken: baseMint, toToken: params.stockMint, fromAmount: ytProceedsBase })
+    : []
 
   return {
     market,
@@ -80,6 +115,10 @@ export async function quoteYieldNow(params: {
     stockMint: params.stockMint,
     maturity: new Date(market.maturityDateUnixTs * 1000),
     impliedApy: market.impliedApy,
+    swapPriceImpact: Number(swap.priceImpact ?? 0) / 100,
+    ytExecutable,
+    ytBidDepth,
+    ytBidCount,
   }
 }
 

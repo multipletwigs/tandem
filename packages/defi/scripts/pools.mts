@@ -1,0 +1,7 @@
+const res = await fetch("https://tars.loopscale.com/v1/markets/lending_vaults/info", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ page: 0, pageSize: 100, includeStrategySummaries: true }) })
+console.log("status", res.status)
+const body: any = await res.json()
+console.log("keys", Object.keys(body), "n", body.lendVaults?.length)
+const v = body.lendVaults?.[0]; console.log("vault keys", Object.keys(v.vault), "summary keys", Object.keys(v.strategySummary ?? {}))
+const usdc = body.lendVaults.filter((x: any) => x.vault.principalMint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+console.log("usdc vaults", usdc.length, usdc.slice(0, 3).map((x: any) => [x.vault.name, x.strategySummary?.wAvgApy, x.strategySummary?.totalDepositsUsd, x.vault.totalDeposits]))

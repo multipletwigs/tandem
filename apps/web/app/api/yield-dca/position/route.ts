@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PublicKey } from "@solana/web3.js"
-import { getHarvestableYield } from "@workspace/defi"
+import { getPoolBalance, type DcaPool } from "@workspace/defi"
 
 import { serverConnection } from "@/lib/server-rpc"
 
-export async function GET(req: NextRequest) {
-  const owner = req.nextUrl.searchParams.get("owner")
-  const principal = req.nextUrl.searchParams.get("principal") ?? "0"
-  if (!owner) return NextResponse.json({ error: "owner required" }, { status: 400 })
+export async function POST(req: NextRequest) {
+  const { owner, pool, principal } = (await req.json()) as { owner: string; pool: DcaPool; principal: string }
   try {
-    const r = await getHarvestableYield({ connection: serverConnection(), owner: new PublicKey(owner), principalUsdc: BigInt(principal) })
-    return NextResponse.json({ balance: r.balance.toString(), harvestable: r.harvestable.toString() })
+    const balance = await getPoolBalance({ pool, owner: new PublicKey(owner), connection: serverConnection() })
+    const p = BigInt(principal ?? "0")
+    return NextResponse.json({ balance: balance.toString(), harvestable: (balance > p ? balance - p : 0n).toString() })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 })
   }
