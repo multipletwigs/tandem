@@ -11,3 +11,5 @@ allowBuilds:
 overrides:
   "nextra>zod": "~4.3.6"
   "nextra-theme-docs>zod": "~4.3.6"
+  # one web3.js v1 instance across Exponent (pins 1.98.4) and JupLend (^1.98.4)
+  "@solana/web3.js@1": "1.98.4"

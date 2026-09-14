@@ -13,3 +13,8 @@ export * as exponent from "@exponent-labs/exponent-sdk"
 export * as kamino from "@kamino-finance/klend-sdk"
 export * as juplendEarn from "@jup-ag/lend/earn"
 export * as juplendRead from "@jup-ag/lend-read"
+
+// Product flows
+export * from "./flows/yield-now"
+export * from "./flows/yield-dca"
+export { quoteSunrise, executeSunrise, type SunriseQuote } from "./sunrise"

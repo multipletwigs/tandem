@@ -3,7 +3,8 @@ import { EXPONENT } from "./addresses"
 /** Shape of GET https://api.exponent.finance/markets (undocumented, observed 2026-09-14). */
 export interface ExponentMarket {
   vaultAddress: string
-  underlyingAsset: string
+  underlyingAsset: { mint: string; name: string; ticker: string; decimals: number }
+  quoteAsset: { mint: string; name: string; ticker: string; decimals: number }
   syTokenName: string
   tokenName: string
   baseTokenMint: string
