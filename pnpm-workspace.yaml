@@ -6,3 +6,8 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   msw: false
+
+# nextra 4.6.1 breaks with zod >=4.4 (z.custom rejects undefined children in LayoutPropsSchema)
+overrides:
+  "nextra>zod": "~4.3.6"
+  "nextra-theme-docs>zod": "~4.3.6"
