@@ -8,7 +8,15 @@
  * Every builder returns an UNSIGNED transaction for the user's wallet to sign.
  * Steps are sequential because each input depends on the previous fill.
  */
-import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js"
+import {
+  type AddressLookupTableAccount,
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js"
 import { LOCAL_ENV, Orderbook, Vault, YtPosition, OfferType } from "@exponent-labs/exponent-sdk"
 
 import { USDC_MINT } from "../addresses"
@@ -113,7 +121,7 @@ export async function buildStripTx(params: {
   return { transaction: tx, vault }
 }
 
-/** Step 3 — sell all YT on the Exponent orderbook for base. */
+/** Step 3 — sell all YT on the Exponent orderbook for base. v0 tx with Exponent's lookup tables (legacy is too large). */
 export async function buildSellYtTx(params: {
   connection: Connection
   owner: PublicKey
@@ -123,7 +131,7 @@ export async function buildSellYtTx(params: {
   /** worst acceptable price expressed as implied APY (higher APY = cheaper YT for the buyer = worse for us) */
   maxPriceApy: number
   minBaseOut: bigint
-}): Promise<{ transaction: Transaction }> {
+}): Promise<{ transaction: VersionedTransaction }> {
   const ob = await Orderbook.load(
     EXPONENT_MAINNET_ENV,
     params.connection,
@@ -140,9 +148,26 @@ export async function buildSellYtTx(params: {
     virtualOffer: false,
     mintSy: params.vault.mintSy,
   })
-  const tx = new Transaction().add(...setupIxs, ix)
-  await finalize(tx, params.connection, params.owner)
-  return { transaction: tx }
+  const transaction = await toV0(params.connection, params.owner, [...setupIxs, ix], [
+    params.vault.addressLookupTable,
+    ob.vaulLookupTable,
+  ])
+  return { transaction }
+}
+
+async function toV0(
+  connection: Connection,
+  payer: PublicKey,
+  instructions: TransactionInstruction[],
+  lookupTables: (PublicKey | undefined)[],
+): Promise<VersionedTransaction> {
+  const unique = [...new Map(lookupTables.filter(Boolean).map((k) => [k!.toBase58(), k!])).values()]
+  const alts = (
+    await Promise.all(unique.map((k) => connection.getAddressLookupTable(k).then((r) => r.value)))
+  ).filter((a): a is AddressLookupTableAccount => a !== null)
+  const { blockhash } = await connection.getLatestBlockhash()
+  const message = new TransactionMessage({ payerKey: payer, recentBlockhash: blockhash, instructions }).compileToV0Message(alts)
+  return new VersionedTransaction(message)
 }
 
 /** Step 4 — base → Backpack stock via Sunrise. Returns the quote with an unsigned tx. */

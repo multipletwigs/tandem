@@ -3,6 +3,7 @@ import localFont from "next/font/local"
 
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "@/app/providers"
 import { cn } from "@workspace/ui/lib/utils"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
@@ -26,7 +27,9 @@ export default function RootLayout({
       className={cn("antialiased", "font-sans", inter.variable, departureMono.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <Providers>{children}</Providers>
+        </ThemeProvider>
       </body>
     </html>
   )
