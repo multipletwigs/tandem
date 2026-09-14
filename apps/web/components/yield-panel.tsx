@@ -94,7 +94,7 @@ export function YieldPanel() {
   return (
     <div className="grid gap-6">
       <Card>
-        <CardContent className="grid gap-4 md:grid-cols-3">
+        <CardContent className="grid gap-4 md:grid-cols-2 *:min-w-0">
           <div className="grid gap-2">
             <Label htmlFor="usd">Deposit (USDC)</Label>
             <Input id="usd" inputMode="decimal" className="font-mono" value={usd} onChange={(e) => setUsd(e.target.value)} />
@@ -102,26 +102,16 @@ export function YieldPanel() {
           <div className="grid gap-2">
             <Label>Stock to buy</Label>
             <Select value={stock} onValueChange={(v) => v && setStock(String(v))}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Pick a stock" /></SelectTrigger>
+              <SelectTrigger className="w-full max-w-full overflow-hidden">
+                <SelectValue placeholder="Pick a stock">
+                  {(v: string | null) => { const s = stocks.find((x) => x.address === v); return s ? <><span className="font-mono">{s.symbol}</span><span className="text-muted-foreground truncate">{s.name}</span></> : null }}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {stocks.map((s) => (
                   <SelectItem key={s.address} value={s.address}>
                     <span className="font-mono">{s.symbol}</span>
                     <span className="text-muted-foreground truncate">{s.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Yield market</Label>
-            <Select value={vault} onValueChange={(v) => v && setVault(String(v))}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {markets.map((m) => (
-                  <SelectItem key={m.vaultAddress} value={m.vaultAddress}>
-                    <span className="font-mono">{m.tokenName}</span>
-                    <span className="text-muted-foreground">{pct(m.impliedApy)} · {date(m.maturity)}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -137,7 +127,7 @@ export function YieldPanel() {
         </TabsList>
         <TabsContent value="now" className="pt-4">
           {market && stockMeta
-            ? <YieldNow owner={owner} market={market} stock={stockMeta} usdcAmount={usdcAmount} />
+            ? <YieldNow owner={owner} market={market} markets={markets} onMarket={setVault} stock={stockMeta} usdcAmount={usdcAmount} />
             : <p className="text-muted-foreground text-sm">Loading markets…</p>}
         </TabsContent>
         <TabsContent value="dca" className="pt-4">
@@ -216,7 +206,9 @@ function Summary({ rows }: { rows: { k: string; v: string; strong?: boolean }[] 
 // Flow A — yield now
 // ----------------------------------------------------------------------------
 
-function YieldNow({ owner, market, stock, usdcAmount }: { owner?: string; market: Market; stock: Stock; usdcAmount: bigint }) {
+function YieldNow({ owner, market, markets, onMarket, stock, usdcAmount }: {
+  owner?: string; market: Market; markets: Market[]; onMarket: (v: string) => void; stock: Stock; usdcAmount: bigint
+}) {
   const [quote, setQuote] = React.useState<Quote | null>(null)
   const [quoting, setQuoting] = React.useState(false)
   const [running, setRunning] = React.useState(false)
@@ -313,6 +305,24 @@ function YieldNow({ owner, market, stock, usdcAmount }: { owner?: string; market
           <CardDescription>Sell a year of interest today. Keep the principal.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label>Yield market <span className="text-muted-foreground font-normal">(Exponent)</span></Label>
+            <Select value={market.vaultAddress} onValueChange={(v) => v && onMarket(String(v))}>
+              <SelectTrigger className="w-full max-w-full overflow-hidden">
+                <SelectValue>
+                  {(v: string | null) => { const m = markets.find((x) => x.vaultAddress === v); return m ? <><span className="font-mono">{m.tokenName}</span><span className="text-muted-foreground">{pct(m.impliedApy)} · {date(m.maturity)}</span></> : null }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {markets.map((m) => (
+                  <SelectItem key={m.vaultAddress} value={m.vaultAddress}>
+                    <span className="font-mono">{m.tokenName}</span>
+                    <span className="text-muted-foreground">{pct(m.impliedApy)} · {date(m.maturity)}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Summary rows={[
             { k: "You deposit", v: `${fmt(usdcAmount, 6)} USDC` },
             { k: "Yield sold for", v: quote ? `${fmt(quote.ytProceedsBase, quote.decimals, 4)} ${quote.baseSymbol}` : "…" },
