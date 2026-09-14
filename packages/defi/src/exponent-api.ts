@@ -37,3 +37,28 @@ export async function fetchExponentMarkets(init?: RequestInit): Promise<Exponent
   const body = (await res.json()) as ExponentMarket[] | { markets: ExponentMarket[] }
   return Array.isArray(body) ? body : body.markets
 }
+
+/** GET /vaults — every vault ever created (85 as of 2026-09-14), including matured ones. */
+export interface ExponentVault {
+  address: string
+  /** e.g. "kUSDC-02JUL25" */
+  name: string
+  start_timestamp: number
+  end_timestamp: number
+  alt_address?: string | null
+  pt_mint: string
+  yt_mint: string
+  implied_apy: number
+  pt_price: number
+  yt_price: number
+  clmm_markets: string[]
+  orderbooks: string[]
+  tvl_in_base_token: number
+}
+
+export async function fetchExponentVaults(init?: RequestInit): Promise<ExponentVault[]> {
+  const res = await fetch(`${EXPONENT.apiBase}/vaults`, init)
+  if (!res.ok) throw new Error(`Exponent /vaults ${res.status}`)
+  const body = (await res.json()) as ExponentVault[] | { vaults: ExponentVault[] }
+  return Array.isArray(body) ? body : body.vaults
+}
