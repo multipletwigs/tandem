@@ -71,3 +71,52 @@ export const BACKPACK_SECURITIES = {
   SPCX: "SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb",
   /** Full list: GET https://api.sunrise.xyz/v1/tokens, filter issuer === "backpack_securities" */
 } as const
+
+// ---------------------------------------------------------------------------
+// Yield sources behind Exponent's live markets (2026-09-14). None ship a public
+// TypeScript SDK; integrate via Jupiter swap into the base token, then Exponent.
+// ---------------------------------------------------------------------------
+
+/** https://docs.hylo.so/security/onchain-addresses — Rust SDK only (crates hylo-clients, hylo-idl). IDLs vendored in ./idl */
+export const HYLO = {
+  exchange: "HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn",
+  earnPool: "HysTabVUfmQBFcmzu1ctRd1Y1fxd66RBpboy1bmtDSQQ",
+  router: "hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f",
+  hyUSD: "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+  eHYUSD: "HnnGv3HrSqjRpgdFmx7vQGjntNEoex1SU4e9Lxcxuihz",
+  xSOL: "4sWNB8zGWHkh6UnmwiEtzNxL4XrN7uK9tosbESbJFfVs",
+  hyloSOL: "hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT",
+  hyloSOLPlus: "hy1opf2bqRDwAxoktyWAj6f3UpeHcLydzEdKjMYGs2u",
+  /** Undocumented but public JSON: TVL, NAVs, eHYUSD NAV */
+  statsUrl: "https://api.hylo.so/stats",
+} as const
+
+/** https://docs.onre.finance — no SDK, Anchor IDL vendored in ./idl/onre.json. Permissionless mint via take_offer_permissionless_v2 */
+export const ONRE = {
+  program: "onreuGhHHgVzMWSkj2oQDLDtvvGvoepBPkqyaubFcwe",
+  ONyc: "5Y8NV33Vv7WbnLfq3zBcKSdYPrk7g2KoiQoe7M2tcxp5",
+  /** Exponent senior tranche of ONyc (not OnRe-issued) */
+  srONyc: "9J8VvigcjFTkN3jhZH2ieTi2hdGVBVpEXbcA1JDo7QpA",
+  marketStats: "BuPMet2URHuTVKSHpj32AjsXxHgdsqeA1i82dr1b4Mi5",
+  USDG: "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH",
+  apiBase: "https://core.api.onre.finance",
+} as const
+
+/** https://docs.solstice.finance — SDK is private npm (@solsticelabs/usx-client-sdk). Mint is KYC-gated; USX→eUSX lock is permissionless */
+export const SOLSTICE = {
+  usxProgram: "USXyiSTsPEWz55pSK7sZoUL79ntoVGQbaTDT57tH6bx",
+  yieldVaultProgram: "eUSXyKoZ6aGejYVbnp3wtWQ1E8zuokLAJPecPxxtgG3",
+  USX: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+  eUSX: "3ThdFZQKM6kRyVGLG48kaPg5TRMhYMKY1iCRa9xop1WC",
+  SLX: "SLXdx4BUt2v9uJQNzWqSfzTJ9UKLUDsvxHFMEEdrfgq",
+  apiBase: "https://api.solstice.finance",
+} as const
+
+/** https://docs.apyx.fi — apxUSD is centrally minted (CCIP-bridged), no Solana program. Buy on DEX only. */
+export const APYX = {
+  apxUSD: "HAYQtfJEQ9DbDbaHEhxfGsWbSZ3ywthdsVB3PuB72DYe",
+  apyUSD: "Ex8hKasfFCfj3yGuN5TyYRUjHePgVs3uYUJRT8geT7rv",
+} as const
+
+/** Strategy Inc. "Stretch" preferred (STRC) xStock — yield accrues via Token-2022 ScaledUiAmount multiplier */
+export const STRCx = "Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH"

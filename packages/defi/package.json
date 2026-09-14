@@ -8,9 +8,11 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "generate": "pnpm run generate:sunrise && pnpm run generate:loopscale",
+    "generate": "pnpm run generate:sunrise && pnpm run generate:loopscale && pnpm run generate:xstocks && pnpm run generate:solstice",
     "generate:sunrise": "openapi-typescript https://api.sunrise.xyz/openapi -o src/generated/sunrise.d.ts",
-    "generate:loopscale": "openapi-typescript https://docs.loopscale.com/api-reference/openapi.source.json -o src/generated/loopscale.d.ts"
+    "generate:loopscale": "openapi-typescript https://docs.loopscale.com/api-reference/openapi.source.json -o src/generated/loopscale.d.ts",
+    "generate:xstocks": "openapi-typescript https://docs.xstocks.fi/_bundle/apis/@v2/openapi.yaml -o src/generated/xstocks.d.ts",
+    "generate:solstice": "openapi-typescript https://api.solstice.finance/docs/openapi.json -o src/generated/solstice.d.ts"
   },
   "exports": {
     ".": "./src/index.ts",

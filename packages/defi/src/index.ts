@@ -1,8 +1,12 @@
 export * from "./addresses"
 export * from "./exponent-api"
 export * from "./jupiter"
+export * from "./onre"
+export * from "./hylo"
 export { sunrise, type SunrisePaths } from "./sunrise"
 export { loopscale, type LoopscalePaths } from "./loopscale"
+export { xstocks, createXStocksClient, type XStocksPaths } from "./xstocks"
+export { solstice, fetchSolsticeApy, type SolsticePaths } from "./solstice"
 
 // Protocol SDKs (re-exported so apps depend only on @workspace/defi)
 export * as exponent from "@exponent-labs/exponent-sdk"
