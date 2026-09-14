@@ -1,0 +1,37 @@
+{
+  "name": "@workspace/defi",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Protocol SDKs and REST clients for Tandem: Exponent, Kamino, JupLend, Loopscale, Sunrise, Jupiter",
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit",
+    "generate": "pnpm run generate:sunrise && pnpm run generate:loopscale",
+    "generate:sunrise": "openapi-typescript https://api.sunrise.xyz/openapi -o src/generated/sunrise.d.ts",
+    "generate:loopscale": "openapi-typescript https://docs.loopscale.com/api-reference/openapi.source.json -o src/generated/loopscale.d.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.2.0",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9.39.5",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@exponent-labs/exponent-sdk": "^0.9.27",
+    "@jup-ag/lend": "^0.2.0",
+    "@jup-ag/lend-read": "^0.0.14",
+    "@kamino-finance/klend-sdk": "^12.0.0",
+    "@solana/kit": "^8.3.0",
+    "@solana/web3.js": "^1.99.0",
+    "bn.js": "^5.2.5",
+    "openapi-fetch": "^0.17.0"
+  }
+}
